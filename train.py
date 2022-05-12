@@ -1,25 +1,35 @@
+import argparse
+from model import VDSR
+import os
+import torch
 from torch.optim import Adam
 from utils.dataset import dataset
 from utils.common import PSNR
-from model import VDSR
-import argparse
-import torch
-import os
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--epochs",         type=int, default=80,            help='-')
-parser.add_argument("--batch-size",     type=int, default=64,            help='-')
-parser.add_argument("--save-best-only", type=int, default=0,             help='-')
-parser.add_argument("--ckpt-dir",       type=str, default="checkpoint/", help='-')
+parser.add_argument("--epochs",         type=int, default=80, help='-')
+parser.add_argument("--batch-size",     type=int, default=64, help='-')
+parser.add_argument("--save-best-only", type=int, default=0,  help='-')
+parser.add_argument("--save-log",       type=int, default=0,  help='-')
+parser.add_argument("--ckpt-dir",       type=str, default="", help='-')
 
 
-FLAG, unparsed = parser.parse_known_args()
-epochs = FLAG.epochs
-batch_size = FLAG.batch_size
-ckpt_dir = FLAG.ckpt_dir
+# -----------------------------------------------------------
+# global variables
+# -----------------------------------------------------------
+
+FLAGS, unparsed = parser.parse_known_args()
+epochs = FLAGS.epochs
+batch_size = FLAGS.batch_size
+save_log = (FLAGS.save_log == 1)
+save_best_only = (FLAGS.save_best_only == 1)
+
+ckpt_dir = FLAGS.ckpt_dir
+if (ckpt_dir == "") or (ckpt_dir == "default"):
+    ckpt_dir = "checkpoint"
+
 model_path = os.path.join(ckpt_dir, "VDSR.pt")
 ckpt_path = os.path.join(ckpt_dir, "ckpt.pt")
-save_best_only = (FLAG.save_best_only == 1)
 
 
 # -----------------------------------------------------------
@@ -45,18 +55,25 @@ valid_set.load_data()
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 vdsr = VDSR(device)
 
-optimizer = Adam(vdsr.model.parameters(), lr=1e-3)
-# optimizer = torch.optim.SGD(vdsr.model.parameters(),
-#                             lr=0.01, momentum=0.9, weight_decay=0.0001)
+# -----------------------------------------------------------
+#  Train
+# -----------------------------------------------------------
+def main():
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    srcnn = VDSR(device)
 
-vdsr.setup(optimizer=optimizer,
-           loss=torch.nn.MSELoss(),
-           model_path=model_path,
-           ckpt_path=ckpt_path,
-           metric=PSNR)
+    optimizer = Adam(vdsr.model.parameters(), lr=1e-3)
+    # optimizer = torch.optim.SGD(vdsr.model.parameters(),
+    #                             lr=0.01, momentum=0.9, weight_decay=0.0001)
+    srcnn.setup(optimizer=optimizer,
+                loss=torch.nn.MSELoss(),
+                model_path=model_path,
+                ckpt_path=ckpt_path,
+                metric=PSNR)
 
-vdsr.load_checkpoint(ckpt_path)
-vdsr.train(train_set, valid_set, 
-           epochs=epochs, batch_size=batch_size,
-           save_best_only=save_best_only)
+    srcnn.load_checkpoint(ckpt_path)
+    srcnn.train(train_set, valid_set, epochs=epochs, batch_size=batch_size,
+                save_best_only=save_best_only, save_log=save_log, log_dir=ckpt_dir)
 
+if __name__ == "__main__":
+    main()
