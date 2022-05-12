@@ -1,11 +1,11 @@
-from utils.common import *
-from model import VDSR
 import argparse
+from model import VDSR
+from utils.common import *
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--scale',        type=int,   default=2,                   help='-')
-parser.add_argument("--ckpt-path",    type=str,   default="",                  help='-')
-parser.add_argument("--image-path",   type=str,   default="dataset/test1.png", help='-')
+parser.add_argument('--scale',      type=int, default=2,                   help='-')
+parser.add_argument("--ckpt-path",  type=str, default="",                  help='-')
+parser.add_argument("--image-path", type=str, default="dataset/test1.png", help='-')
 
 FLAGS, unparsed = parser.parse_known_args()
 image_path = FLAGS.image_path
@@ -16,7 +16,7 @@ if scale not in [2, 3, 4]:
 
 ckpt_path = FLAGS.ckpt_path
 if (ckpt_path == "") or (ckpt_path == "default"):
-    ckpt_path = f"checkpoint/VDSR-x{scale}.pt"
+    ckpt_path = "checkpoint/VDSR.pt"
 
 sigma = 0.3 if scale == 2 else 0.2
 
