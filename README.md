@@ -19,9 +19,11 @@ You run this command to begin the training:
 python train.py  --epochs=80             \
                  --batch_size=64         \
                  --save-best-only=1      \
+		 --save-log=0		 \
                  --ckpt-dir="checkpoint/"
 ```
-- **save-best-only**: if it is **0**, model weights will be saved every epoch.
+- **--save-best-only**: if it's equal to **0**, model weights will be saved every epoch.
+- **--save-log**: if it's equal to 1, **train loss, train rewards, train metrics, validation rewards, validation metrics** will be saved every save-every steps..
 
 
 **NOTE**: if you want to re-train a new model, you should delete all files in **checkpoint** directory. Your checkpoint will be saved when above command finishs and can be used for the next times, so you can train a model on Google Colab without taking care of GPU time limit.
@@ -35,18 +37,17 @@ You can get the models here: [VDSR.pt](checkpoint/VDSR.pt)
 ## Test
 I use **Set5** as the test set. After Training, you can test models with scale factors **x2, x3, x4**, the result is calculated by compute average PSNR of all images.
 ```
-python test.py --scale=2  \
-	       --ckpt-path=""
+python test.py --scale=2 --ckpt-path="default"
 ```
 
-**--ckpt-path=""** mean you are using default weights path, aka **checkpoint/VDSR.pt**. If you want to use your trained weights, you can pass your weights path to **--ckpt-path**.
+**--ckpt-path="default"** means you are using default model path, aka **checkpoint/VDSR.pt**. If you want to use your trained model, you can pass yours to **--ckpt-path**.
 
 ## Demo 
 After Training, you can test models with this command, the result is the **sr.png**.
 ```
-python demo.py --image-path="dataset/test2.png" \
-	       --ckpt-path="" 			\
-               --scale=4
+python demo.py --image-path="dataset/test1.png" \
+	       --ckpt-path="default" 			\
+               --scale=2
 ```
 
 **--ckpt-path** is the same as in [Test](#test)
